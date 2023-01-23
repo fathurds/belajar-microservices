@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateLesson extends Migration
+class CreateLessons extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class CreateLesson extends Migration
      */
     public function up()
     {
-        Schema::create('lesson', function (Blueprint $table) {
+        Schema::create('lessons', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('video');
@@ -29,6 +29,6 @@ class CreateLesson extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('lesson');
+        Schema::dropIfExists('lessons');
     }
 }
