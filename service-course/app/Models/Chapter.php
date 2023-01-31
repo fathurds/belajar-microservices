@@ -12,7 +12,7 @@ class Chapter extends Model
     protected $table = 'chapters';
 
     protected $fillable = [
-        'name'. 'course_id',
+        'name', 'course_id',
     ];
 
     public function lesson()
