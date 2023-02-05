@@ -9,6 +9,38 @@ use Validator;
 
 class ReviewController extends Controller
 {
+
+    public function show($id){
+        $course = Course::find($id);
+        if(!$course){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'course not found'
+            ], 404);
+        }
+
+        $reviews = Review::where('course_id', '=', $id)->get()->toArray();
+
+        if(count($reviews) > 0){
+            $userIds = array_column($reviews, 'user_id');
+            $users = getUserByIds($userIds);
+            if($users['status'] == 'error'){
+                $reviews = [];
+            } else {
+                foreach ($reviews as $key => $review) {
+                    $userIndex = array_search($review['user_id'], array_column($users['data'], 'id'));
+                    $reviews[$key]['users'] = $users['data'][$userIndex];
+                    unset($reviews[$key]['user_id']);
+                }
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $reviews
+        ]);
+    }
+
     public function create(Request $request)
     {
         $rules = [

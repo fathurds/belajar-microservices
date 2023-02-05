@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Validator;
 use App\Models\Course;
 use App\Models\Mentor;
+use App\Models\Review;
+use App\Models\MyCourse;
+use App\Models\Chapter;
 use Illuminate\Http\Request;
 
 class CourseController extends Controller
@@ -27,6 +30,32 @@ class CourseController extends Controller
         return response()->json([
             'status' => 'success',
             'data' => $courses->paginate(10)
+        ]);
+    }
+
+    public function show($id)
+    {
+        $course = Course::with('chapters.lesson')
+                        ->with('mentor')
+                        ->with('images')
+                        ->find($id);
+        if(!$course){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'course not found'
+            ], 404);
+        }
+
+        $totalStudents = MyCourse::where('course_id', '=', $id)->count();
+        $totalVideos = Chapter::where('course_id', '=', $id)->withCount('lesson')->get()->toArray();
+        $finalTotalVideos = array_sum(array_column($totalVideos, 'lesson_count'));
+
+        $course['total_videos'] = $finalTotalVideos;
+        $course['total_student'] = $totalStudents;
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $course
         ]);
     }
 
