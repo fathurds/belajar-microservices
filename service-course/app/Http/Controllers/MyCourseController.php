@@ -14,7 +14,7 @@ class MyCourseController extends Controller
         $myCourses = MyCourse::query()->with('course');
 
         $userId = $request->query('user_id');
-        $myCourses->when($userId, function($query) use ($userId){
+        $myCourses->when($userId, function ($query) use ($userId) {
             return $query->where('user_id', '=', $userId);
         });
 
@@ -35,7 +35,7 @@ class MyCourseController extends Controller
 
         $validator = Validator::make($data, $rules);
 
-        if($validator->fails()){
+        if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
                 'message' => $validator->errors()
@@ -45,7 +45,7 @@ class MyCourseController extends Controller
         $courseId = $request->input('course_id');
         $course = Course::find($courseId);
 
-        if(!$course){
+        if (!$course) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'course not found'
@@ -55,7 +55,7 @@ class MyCourseController extends Controller
         $userId = $request->input('user_id');
         $user = getUser($userId);
 
-        if($user['status'] == 'error'){
+        if ($user['status'] == 'error') {
             return response()->json([
                 'status' => $user['status'],
                 'message' => $user['message']
@@ -63,16 +63,59 @@ class MyCourseController extends Controller
         }
 
         $isExistMyCourse = MyCourse::where('course_id', '=', $courseId)
-                                    ->where('user_id', '=', $userId)
-                                    ->exists();
+            ->where('user_id', '=', $userId)
+            ->exists();
 
-        if($isExistMyCourse){
+        if ($isExistMyCourse) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'user already take this course'
             ], 409);
         }
 
+        if ($course->type == 'premium') {
+
+            if ($course->price == 0) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => "price can't be 0"
+                ], 405);
+            }
+
+            if (strlen($course->name) > 50) {
+                $course->name = substr($course->name, 0, 50);
+            }
+
+            $order = postOrder([
+                'user' => $user['data'],
+                'course' => $course->toArray()
+            ]);
+
+            if ($order['status'] == 'error') {
+                return response()->json([
+                    'status' => $order['status'],
+                    'message' => $order['message']
+                ], $order['http_code']);
+            }
+
+            return response()->json([
+                'status' => $order['status'],
+                'data' => $order['data']
+            ]);
+        } else {
+            $myCourse = MyCourse::create($data);
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $myCourse
+            ]);
+        }
+
+    }
+
+    public function createPremiumAccess(Request $request)
+    {
+        $data = $request->all();
         $myCourse = MyCourse::create($data);
 
         return response()->json([
