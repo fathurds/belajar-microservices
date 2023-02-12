@@ -1,12 +1,11 @@
 const express = require('express');
 const { getAll, get, create, update, destroy } = require('./handler/lessons');
 const router = express.Router();
-const isAdmin = require('../middlewares/isAdmin');
 
 router.get('/', getAll);
 router.get('/:id', get);
-router.post('/', isAdmin, create);
-router.put('/:id', isAdmin, update);
-router.delete('/:id', isAdmin, destroy);
+router.post('/', create);
+router.put('/:id', update);
+router.delete('/:id', destroy);
 
 module.exports = router;
